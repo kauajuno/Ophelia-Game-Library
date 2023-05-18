@@ -20,7 +20,9 @@ enum Genre{
     PVP,
     PVE,
     SANDBOX,
-    ROGUELIKE
+    ROGUELIKE,
+    OPENWORLD,
+    HORROR
 };
 
 enum Review{
@@ -42,17 +44,24 @@ enum AgeRestriction{
 
 class TreeNode{
     public:
-    int data;
     TreeNode* lchild;
     TreeNode* rchild;
     TreeNode* parent;
-    string name;
     ui downloads;
+    string name;
     set<Genre> genres;
     Review review;
     AgeRestriction ageRestriction;
     Color color;
-    TreeNode(int val): data(val), parent(nullptr), color(Color::RED){}
+    TreeNode(ui d, string n, set<Genre> sg, Review r, AgeRestriction ar):
+        downloads(d),
+        name(n),
+        genres(sg),
+        review(r),
+        ageRestriction(ar),
+        parent(nullptr),
+        color(Color::RED)
+    {}
 };
 
 class RBTree{
@@ -144,13 +153,13 @@ class RBTree{
         void inOrderHelper(TreeNode* node){
             if(node == nil) return;
             inOrderHelper(node->lchild);
-            cout << node->data << ' ';
+            cout << node->downloads << ' ';
             inOrderHelper(node->rchild);
         }
 
         void preOrderHelper(TreeNode* node){
             if(node == nil) return;
-            cout << node->data << ' ';
+            cout << node->downloads << ' ';
             preOrderHelper(node->lchild);
             preOrderHelper(node->rchild);
         }
@@ -159,12 +168,13 @@ class RBTree{
             if(node == nil) return;
             postOrderHelper(node->lchild);
             postOrderHelper(node->rchild);
-            cout << node->data << ' ';
+            cout << node->downloads << ' ';
         }
 
     public:
 
         RBTree(){
+            nil = new TreeNode(0, "", {}, Review::OK, AgeRestriction::FFA);
             nil->color = Color::BLACK;
             root = nil;
         }
@@ -181,8 +191,29 @@ class RBTree{
             postOrderHelper(root);
         }
 
-        void insert(int val){
-            TreeNode* newNode = new TreeNode(val);
+        // BFS function to get all the games
+        vector<TreeNode*> getAllGames(){
+            TreeNode* aux = root;
+            stack<TreeNode*> s;
+            vector<TreeNode*> v;
+            while(aux != nil || !s.empty()){
+                v.push_back(aux);
+                if(aux->rchild != nil)
+                    s.push(aux->rchild);
+                if(aux->lchild != nil)
+                    s.push(aux->lchild);
+                if(!s.empty()){
+                    aux = s.top();
+                    s.pop();
+                }else{
+                    aux = nil;
+                }
+            }
+            return v;
+        }
+
+        void insert(ui downloads, string name, set<Genre> genre, Review review, AgeRestriction ageRestriction){
+            TreeNode* newNode = new TreeNode(downloads, name, genre, review, ageRestriction);
             newNode->lchild = newNode->rchild = nil;
             
             TreeNode* prev = nullptr;
@@ -190,7 +221,7 @@ class RBTree{
 
             while(curr != nil){
                 prev = curr;
-                if(newNode->data < curr->data)
+                if(newNode->downloads < curr->downloads)
                     curr = curr->lchild;
                 else
                     curr = curr->rchild;
@@ -203,7 +234,7 @@ class RBTree{
                 root = newNode;
                 return;
             }
-            else if(newNode->data < prev->data)
+            else if(newNode->downloads < prev->downloads)
                 prev->lchild = newNode;
             else
                 prev->rchild = newNode;
@@ -220,18 +251,20 @@ int main(){
 
     RBTree rbt = RBTree();
 
-    rbt.insert(2);
-    rbt.insert(3);
-    rbt.insert(4);
+    rbt.insert(2, "The Witcher 3", {Genre::ADVENTURE, Genre::OPENWORLD}, Review::AWESOME, AgeRestriction::A16);
+    rbt.insert(3, "Garten of BanBan", {Genre::INDIE, Genre::HORROR}, Review::TERRIBLE, AgeRestriction::A12);
+    rbt.insert(4, "Bloons TD 6", {Genre::INDIE, Genre::PVE}, Review::GOOD, AgeRestriction::FFA);
 
-    
     rbt.inOrderDFS();
     cout << '\n';
     rbt.preOrderDFS();
     cout << '\n';
     rbt.postOrderDFS();
     cout << '\n';
-    
+
+    vector<TreeNode*> vtest = rbt.getAllGames();
+    for(TreeNode* t : vtest)
+        cout << t->downloads << ' ';
     
     return 0;
 }
