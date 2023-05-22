@@ -3,6 +3,45 @@
 using namespace std;
 typedef unsigned int ui;
 
+enum Color{
+    RED,
+    BLACK
+};
+
+enum Genre{
+    FPS,
+    SPORTS,
+    STRATEGY,
+    SIMULATION,
+    MOBA,
+    ADVENTURE,
+    INDIE,
+    PLATFORMER,
+    PVP,
+    PVE,
+    SANDBOX,
+    ROGUELIKE,
+    OPENWORLD,
+    HORROR
+};
+
+enum Review{
+    TERRIBLE,
+    BAD,
+    OK,
+    GOOD,
+    AWESOME
+};
+
+enum AgeRestriction{
+    FFA,
+    A10,
+    A12,
+    A14,
+    A16,
+    A18
+};
+
 map<int, string> genreMap = {
     {1, "FPS"},
     {2, "SPORTS"},
@@ -54,44 +93,6 @@ map<Review, string> reviewToString = {
     {Review::AWESOME, "AWESOME"}
 };
 
-enum Color{
-    RED,
-    BLACK
-};
-
-enum Genre{
-    FPS,
-    SPORTS,
-    STRATEGY,
-    SIMULATION,
-    MOBA,
-    ADVENTURE,
-    INDIE,
-    PLATFORMER,
-    PVP,
-    PVE,
-    SANDBOX,
-    ROGUELIKE,
-    OPENWORLD,
-    HORROR
-};
-
-enum Review{
-    TERRIBLE,
-    BAD,
-    OK,
-    GOOD,
-    AWESOME
-};
-
-enum AgeRestriction{
-    FFA,
-    A10,
-    A12,
-    A14,
-    A16,
-    A18
-};
 
 class TreeNode{
     public:
@@ -121,10 +122,6 @@ class RBTree{
         TreeNode* root;
         TreeNode* nil;
 
-        void fixDelete(TreeNode* x){
-
-        }
-
         TreeNode* minimum(TreeNode* node){
             while(node->lchild != nil)
                 node = node->lchild;
@@ -141,6 +138,64 @@ class RBTree{
             }
             y->parent = x->parent;
         }
+
+        void fixDelete(TreeNode* x) {
+            TreeNode* s;
+            while (x != root && x->color == Color::BLACK) {
+                if (x == x->parent->lchild) {
+                    s = x->parent->rchild;
+                    if (s->color == 1) {
+                        s->color = Color::BLACK;
+                        x->parent->color = Color::RED;
+                        leftRotate(x->parent);
+                        s = x->parent->rchild;
+                    }
+
+                    if (s->lchild->color == Color::BLACK && s->rchild->color == Color::BLACK) {
+                        s->color = Color::RED;
+                        x = x->parent;
+                    } else {
+                        if (s->rchild->color == Color::BLACK) {
+                            s->lchild->color = Color::BLACK;
+                            s->color = Color::RED;
+                            rightRotate(s);
+                            s = x->parent->rchild;
+                        } 
+                        s->color = x->parent->color;
+                        x->parent->color = Color::BLACK;
+                        s->rchild->color = Color::BLACK;
+                        leftRotate(x->parent);
+                        x = root;
+                    }
+                } else {
+                    s = x->parent->lchild;
+                    if (s->color == 1) {
+                        s->color = Color::BLACK;
+                        x->parent->color = Color::RED;
+                        rightRotate(x->parent);
+                        s = x->parent->lchild;
+                    }
+
+                    if (s->rchild->color == Color::BLACK && s->rchild->color == Color::BLACK) {
+                        s->color = Color::RED;
+                        x = x->parent;
+                    } else {
+                        if (s->lchild->color == 0) {
+                            s->rchild->color = Color::BLACK;
+                            s->color = Color::RED;
+                            leftRotate(s);
+                            s = x->parent->lchild;
+                        } 
+                        s->color = x->parent->color;
+                        x->parent->color = Color::BLACK;
+                        s->lchild->color = Color::BLACK;
+                        rightRotate(x->parent);
+                        x = root;
+                    }
+                } 
+            }
+        x->color = Color::BLACK;
+	}
 
         void deleteHelper(TreeNode* node, string gameName){
             TreeNode* aux = node;
@@ -170,8 +225,11 @@ class RBTree{
             dNodeHelper = dNode;
             Color ogcolor = dNodeHelper->color;
             if(dNode->lchild == nil && dNode->rchild == nil){
-                if(dNode == root)
+                if(dNode == root){
                     root = nil;
+                    free(dNode);
+                    return;
+                }
                 else if(dNode == dNode->parent->lchild)
                     dNode->parent->lchild = nil;
                 else
@@ -289,7 +347,7 @@ class RBTree{
         void inOrderHelper(TreeNode* node){
             if(node == nil) return;
             inOrderHelper(node->lchild);
-            cout << node->name << ' ';
+            cout << node->name << '\n';
             inOrderHelper(node->rchild);
         }
 
@@ -320,6 +378,10 @@ class RBTree{
         }
 
         void inOrderDFS(){
+            if(root == nil){
+                cout << "THERE ARE NO GAMES IN YOUR LIBRARY YET\n";
+                return;
+            }
             inOrderHelper(root);
         }
 
@@ -402,6 +464,10 @@ class RBTree{
                 return;
             }
 
+            cout << "\033[35m";
+
+            cout << '\n';
+
             cout << "NAME: " << aux->name << '\n';
             cout << "TOTAL DOWNLOADS: " << aux->downloads << '\n';
             cout << "AGE RESTRICTION: " << ageRestrictionToString[aux->ageRestriction] << '\n';
@@ -413,7 +479,11 @@ class RBTree{
             for(Genre g : gs){
                 cout << " " << genreToString[g];
             }
+            
 
+            cout << '\n';
+
+            cout << "\033[0m";
             cout << '\n';
 
         }
@@ -554,8 +624,6 @@ void insertNewGame(RBTree rbt){
 
     getline(cin, genresHolder);
 
-    // 14
-
     for(char c : genresHolder){
         if(isdigit(c))
             auxGenre = auxGenre * 10 + (c - '0');
@@ -646,75 +714,173 @@ void insertNewGame(RBTree rbt){
     
 }
 
-int main(){
+int main() {
 
-    RBTree rbt = RBTree();
-    vector<TreeNode*> games;
+    cout << "\033[35m"; // switches output color to magenta
+    cout << "====================\n";
+    cout << "WELCOME TO OPHELIAGL\n";
+    cout << "====================\n\n";
+    cout << "\033[0m"; // switches output color to white
+    
+    RBTree gameTree;
     int option;
 
-    while(true){
-        cout << "\033[35m"; // switches output color to magenta
-        cout << "====================\n";
-        cout << "WELCOME TO OPHELIAGL\n";
-        cout << "====================\n\n";
-        cout << "\033[0m"; // switches output color to white
+    int cgDownloads;
+    string cgName;
+    set<Genre> genres;
+    int cgReview;
+    int cgAgeRestriction;
 
-        showOptionsMenu();
+    string genresHolder;
+    vector<int> genresIndexes;
+    int auxGenre;
 
-        while(cin >> option){
+    Review review;
+    AgeRestriction ageRestriction;
+
+    showOptionsMenu();
+
+    while(cin >> option){
+        getchar();
+        switch(option){
+            case 1:
+            auxGenre = 0;
+            genres = {};
+
+            cout << "WHAT'S THE NAME OF THE GAME?\n";
+            getline(cin, cgName);
+            cout << "HOW MANY DOWNLOADS DOES IT HAVE?\n";
+            cin >> cgDownloads;
             getchar();
+            cout << "WHICH GENRES FITS THIS GAME THE MOST? (INVALID INDEXES WILL BE DISREGARDED\n";
+            showGenres();
 
-            switch(option){
+            getline(cin, genresHolder);
+
+            for(char c : genresHolder){
+                if(isdigit(c))
+                    auxGenre = auxGenre * 10 + (c - '0');
+                else{
+                    if(auxGenre != 0){
+                        genresIndexes.push_back(auxGenre);
+                        auxGenre = 0;
+                    }
+                }
+            }
+
+            if(auxGenre != 0)
+                genresIndexes.push_back(auxGenre);
+
+            genres = intvectorToGenreset(genresIndexes);
+
+            cout << "HOW WOULD YOU RATE THIS GAME SO FAR?\n";
+            showReview();
+            while(cin >> cgReview){
+                getchar();
+                if(cgReview < 0 || cgReview > 5){
+                    cout << "INVALID INDEX! INPUT A VALID ONE\n";
+                }else{
+                    break;
+                }
+            }
+            switch(cgReview){
                 case 1:
-                    insertNewGame(rbt);
+                    review = Review::TERRIBLE;
                     break;
 
                 case 2:
-                    cout << "WORK IN PROGRESS\n";
+                    review = Review::BAD;
                     break;
 
                 case 3:
-                    cout << "WORK IN PROGRESS\n";
+                    review = Review::OK;
                     break;
 
                 case 4:
-                    cout << "WORK IN PROGRESS\n";
+                    review = Review::GOOD;
                     break;
 
                 case 5:
-                    cout << "\033[35m";
-                    cout << "THANK YOU FOR USING OPHELIAGL\n";
-                    cout << "SEE YOU LATER!\n";
-                    return 0;
-
-                default:
-                    cout << "INVALID OPTION, PLEASE TRY AGAIN\n";
+                    review = Review::AWESOME;
                     break;
             }
 
-            cout << '\n';
-            showOptionsMenu();
+
+            cout << "WHAT'S THE AGE RESTRICTION FOR THIS GAME?\n";
+            showAgeRestriction();
+            while(cin >> cgAgeRestriction){
+                getchar();
+                if(cgAgeRestriction < 0 || cgAgeRestriction > 6){
+                    cout << "INVALID INDEX! INPUT A VALID ONE\n";
+                }else{
+                    break;
+                }
+            }
+            switch(cgAgeRestriction){
+                case 1:
+                    ageRestriction = AgeRestriction::FFA;
+                    break;
+
+                case 2:
+                    ageRestriction = AgeRestriction::A10;
+                    break;
+
+                case 3:
+                    ageRestriction = AgeRestriction::A12;
+                    break;
+
+                case 4:
+                    ageRestriction = AgeRestriction::A14;
+                    break;
+
+                case 5:
+                    ageRestriction = AgeRestriction::A16;
+                    break;
+
+                case 6:
+                    ageRestriction = AgeRestriction::A18;
+                    break;
+            }
+
+            gameTree.insert(cgDownloads, cgName, genres, review, ageRestriction);
+
+            break;
+
+            case 2:
+            cout << "WHAT'S THE NAME OF THE GAME YOU WANT TO DELETE?\n";
+            getline(cin, cgName);
+            gameTree.deleteGame(cgName);
+            break;
+
+            case 3:
+            cout << "\033[35m";
+            gameTree.inOrderDFS();
+            cout << "\033[0m";
+            break;
+
+            case 4:
+            cout << "WHAT'S THE NAME OF THE GAME?\n";
+            getline(cin, cgName);
+            gameTree.getGame(cgName);
+            break;
+
+            default:
+            cout << "THANK YOU FOR USING OPHELIAGL\n";
+            cout << "SEE YOU SOON\n";
+            return 0;
         }
-
-        
+        showOptionsMenu();
     }
-
-    /*
-    rbt.insert(2, "The Witcher 3", {Genre::ADVENTURE, Genre::OPENWORLD}, Review::AWESOME, AgeRestriction::A16);
-    rbt.insert(3, "Garten of BanBan", {Genre::INDIE, Genre::HORROR}, Review::TERRIBLE, AgeRestriction::A12);
-    rbt.insert(4, "Bloons TD 6", {Genre::INDIE, Genre::PVE}, Review::GOOD, AgeRestriction::FFA);
-
-    rbt.inOrderDFS();
-    cout << '\n';
-    rbt.preOrderDFS();
-    cout << '\n';
-    rbt.postOrderDFS();
-    cout << '\n';
-
-    vector<TreeNode*> vtest = rbt.getAllGames();
-    for(TreeNode* t : vtest)
-        cout << t->downloads << ' ';
-    */    
     
+    // Insert some games
+    gameTree.insert(1000, "Game 1", {Genre::FPS, Genre::STRATEGY}, Review::GOOD, AgeRestriction::A12);
+    gameTree.insert(500, "Game 2", {Genre::SPORTS}, Review::OK, AgeRestriction::A10);
+    gameTree.insert(2000, "Game 3", {Genre::ADVENTURE, Genre::OPENWORLD}, Review::AWESOME, AgeRestriction::A16);
+
+    // Print all games using in-order DFS
+    cout << "All games: ";
+    gameTree.inOrderDFS();
+    cout << endl;
+
     return 0;
 }
