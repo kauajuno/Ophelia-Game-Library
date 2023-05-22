@@ -20,6 +20,40 @@ map<int, string> genreMap = {
     {14, "HORROR"},
 };
 
+map<Genre, string> genreToString = {
+    {Genre::FPS, "FPS"},
+    {Genre::SPORTS, "SPORTS"},
+    {Genre::STRATEGY, "STRATEGY"},
+    {Genre::SIMULATION, "SIMULATION"},
+    {Genre::MOBA, "MOBA"},
+    {Genre::ADVENTURE, "ADVENTURE"},
+    {Genre::INDIE, "INDIE"},
+    {Genre::PLATFORMER, "PLATFORMER"},
+    {Genre::PVP, "PVP"},
+    {Genre::PVE, "PVE"},
+    {Genre::SANDBOX, "SANDBOX"},
+    {Genre::ROGUELIKE, "ROGUELIKE"},
+    {Genre::OPENWORLD, "OPENWORLD"},
+    {Genre::HORROR, "HORROR"}
+};
+
+map<AgeRestriction, string> ageRestrictionToString = {
+    {AgeRestriction::FFA, "FREE FOR ALL"},
+    {AgeRestriction::A10, "10+"},
+    {AgeRestriction::A12, "12+"},
+    {AgeRestriction::A14, "14+"},
+    {AgeRestriction::A16, "16+"},
+    {AgeRestriction::A18, "18+"}
+};
+
+map<Review, string> reviewToString = {
+    {Review::TERRIBLE, "TERRIBLE"},
+    {Review::BAD, "BAD"},
+    {Review::OK, "OK"},
+    {Review::GOOD, "GOOD"},
+    {Review::AWESOME, "AWESOME"}
+};
+
 enum Color{
     RED,
     BLACK
@@ -86,6 +120,91 @@ class RBTree{
 
         TreeNode* root;
         TreeNode* nil;
+
+        void fixDelete(TreeNode* x){
+
+        }
+
+        TreeNode* minimum(TreeNode* node){
+            while(node->lchild != nil)
+                node = node->lchild;
+            return node;
+        }
+
+        void rbTransplant(TreeNode* x, TreeNode* y){
+            if (x->parent == nullptr) {
+                root = y;
+            } else if (x == x->parent->lchild){
+                x->parent->lchild = y;
+            } else {
+                x->parent->rchild = y;
+            }
+            y->parent = x->parent;
+        }
+
+        void deleteHelper(TreeNode* node, string gameName){
+            TreeNode* aux = node;
+            // node to be deleted
+            TreeNode* dNode = nil;
+            // node to hold onto the characteristics of the deleted node OR its predecessor
+            TreeNode* dNodeHelper;
+            // "successor" of the deleted node in case he's got only one child
+            TreeNode* dNodeOnlyChild;
+
+            while(aux != nil){
+                if(aux->name == gameName){
+                    dNode = aux;
+                    break;
+                }
+                if(gameName < aux->name)
+                    aux = aux->lchild;
+                else
+                    aux = aux->rchild;
+            }
+
+            if(dNode == nil){
+                cout << "THE GAME YOU'RE TRYING TO DELETE WAS NOT FOUND, CHECK THE SPELLING\n";
+                return;
+            }
+
+            dNodeHelper = dNode;
+            Color ogcolor = dNodeHelper->color;
+            if(dNode->lchild == nil && dNode->rchild == nil){
+                if(dNode == root)
+                    root = nil;
+                else if(dNode == dNode->parent->lchild)
+                    dNode->parent->lchild = nil;
+                else
+                    dNode->parent->rchild = nil;
+            }else if(dNode->lchild == nil){
+                dNodeOnlyChild = dNode->rchild;
+                rbTransplant(dNode, dNode->rchild);
+            }else if(dNode->rchild == nil){
+                dNodeOnlyChild = dNode->lchild;
+                rbTransplant(dNode, dNode->lchild);
+            }else{
+                dNodeHelper = minimum(dNode->rchild);
+                ogcolor = dNodeHelper->color;
+                dNodeOnlyChild = dNodeHelper->rchild;
+                if (dNodeHelper->parent == dNode) {
+                    dNodeOnlyChild->parent = dNodeHelper;
+                } else {
+                    rbTransplant(dNodeHelper, dNodeHelper->rchild);
+                    dNodeHelper->rchild = dNode->rchild;
+                    dNodeHelper->rchild->parent = dNodeHelper;
+                }
+
+                rbTransplant(dNode, dNodeHelper);
+                dNodeHelper->lchild = dNode->lchild;
+                dNodeHelper->lchild->parent = dNodeHelper;
+                dNodeHelper->color = dNode->color;
+            }
+
+            free(dNode);
+            if(ogcolor == Color::BLACK){
+                fixDelete(dNodeOnlyChild);
+            }
+        }
 
         void rightRotate(TreeNode* k){
             TreeNode* j = k->lchild;
@@ -170,13 +289,13 @@ class RBTree{
         void inOrderHelper(TreeNode* node){
             if(node == nil) return;
             inOrderHelper(node->lchild);
-            cout << node->downloads << ' ';
+            cout << node->name << ' ';
             inOrderHelper(node->rchild);
         }
 
         void preOrderHelper(TreeNode* node){
             if(node == nil) return;
-            cout << node->downloads << ' ';
+            cout << node->name << ' ';
             preOrderHelper(node->lchild);
             preOrderHelper(node->rchild);
         }
@@ -185,7 +304,7 @@ class RBTree{
             if(node == nil) return;
             postOrderHelper(node->lchild);
             postOrderHelper(node->rchild);
-            cout << node->downloads << ' ';
+            cout << node->name << ' ';
         }
 
     public:
@@ -194,6 +313,10 @@ class RBTree{
             nil = new TreeNode(0, "", {}, Review::OK, AgeRestriction::FFA);
             nil->color = Color::BLACK;
             root = nil;
+        }
+
+        void deleteGame(string name){
+            deleteHelper(root, name);
         }
 
         void inOrderDFS(){
@@ -238,7 +361,7 @@ class RBTree{
 
             while(curr != nil){
                 prev = curr;
-                if(newNode->downloads < curr->downloads)
+                if(newNode->name < curr->name)
                     curr = curr->lchild;
                 else
                     curr = curr->rchild;
@@ -262,6 +385,38 @@ class RBTree{
             arrange(newNode);
             
         }
+
+        void getGame(string gameName){
+            TreeNode* aux = root;
+            while(aux != nil){
+                if(aux->name == gameName)
+                    break;
+                if(gameName < aux->name)
+                    aux = aux->lchild;
+                else
+                    aux = aux->rchild;
+            }
+
+            if(aux == nil){
+                cout << "GAME NOT FOUND, CHECK THE SPELLING\n";
+                return;
+            }
+
+            cout << "NAME: " << aux->name << '\n';
+            cout << "TOTAL DOWNLOADS: " << aux->downloads << '\n';
+            cout << "AGE RESTRICTION: " << ageRestrictionToString[aux->ageRestriction] << '\n';
+            cout << "YOUR REVIEW: " << reviewToString[aux->review] << '\n';
+            cout << "GENRES:";
+
+            set<Genre> gs = aux->genres;
+
+            for(Genre g : gs){
+                cout << " " << genreToString[g];
+            }
+
+            cout << '\n';
+
+        }
 };
 
 void showOptionsMenu(){
@@ -269,7 +424,8 @@ void showOptionsMenu(){
     cout << "1. INSERT NEW GAME\n";
     cout << "2. DELETE A GAME\n";
     cout << "3. SHOW ALL GAMES\n";
-    cout << "4. QUIT\n";
+    cout << "4. SEARCH FOR A SPECIFIC GAME\n";
+    cout << "5. QUIT\n";
 }
 
 void showGenres(){
@@ -398,6 +554,8 @@ void insertNewGame(RBTree rbt){
 
     getline(cin, genresHolder);
 
+    // 14
+
     for(char c : genresHolder){
         if(isdigit(c))
             auxGenre = auxGenre * 10 + (c - '0');
@@ -520,6 +678,10 @@ int main(){
                     break;
 
                 case 4:
+                    cout << "WORK IN PROGRESS\n";
+                    break;
+
+                case 5:
                     cout << "\033[35m";
                     cout << "THANK YOU FOR USING OPHELIAGL\n";
                     cout << "SEE YOU LATER!\n";
