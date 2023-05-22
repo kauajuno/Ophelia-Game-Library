@@ -351,20 +351,6 @@ class RBTree{
             inOrderHelper(node->rchild);
         }
 
-        void preOrderHelper(TreeNode* node){
-            if(node == nil) return;
-            cout << node->name << ' ';
-            preOrderHelper(node->lchild);
-            preOrderHelper(node->rchild);
-        }
-
-        void postOrderHelper(TreeNode* node){
-            if(node == nil) return;
-            postOrderHelper(node->lchild);
-            postOrderHelper(node->rchild);
-            cout << node->name << ' ';
-        }
-
     public:
 
         RBTree(){
@@ -385,13 +371,6 @@ class RBTree{
             inOrderHelper(root);
         }
 
-        void preOrderDFS(){
-            preOrderHelper(root);
-        }
-
-        void postOrderDFS(){
-            postOrderHelper(root);
-        }
 
         // BFS function to get all the games
         vector<TreeNode*> getAllGames(){
@@ -592,128 +571,6 @@ set<Genre> intvectorToGenreset(vector<int> &v){
     return s;
 }
 
-void insertNewGame(RBTree rbt){
-
-    string name;
-
-    ui downloads;
-
-    string genresHolder;
-    int auxGenre;
-    vector<int> genresIndexes;
-    set<Genre> genres;
-
-    Review review;
-    int reviewIndex;
-
-    AgeRestriction ageRestriction;
-    int ageRestrictionIndex;
-
-
-    cout << "INSERT THE NAME OF THE GAME\n";
-    getline(cin, name);
-
-
-    cout << "HOW MANY DOWNLOADS DOES IT HAVE?\n";
-    cin >> downloads;
-    getchar();
-
-
-    cout << "WHICH GENRES FITS THIS GAME THE MOST? (INVALID INDEXES WILL BE DISREGARDED\n";
-    showGenres();
-
-    getline(cin, genresHolder);
-
-    for(char c : genresHolder){
-        if(isdigit(c))
-            auxGenre = auxGenre * 10 + (c - '0');
-        else{
-            if(auxGenre != 0){
-                genresIndexes.push_back(auxGenre);
-                auxGenre = 0;
-            }
-        }
-    }
-
-    if(auxGenre != 0)
-        genresIndexes.push_back(auxGenre);
-
-    genres = intvectorToGenreset(genresIndexes);
-
-
-    cout << "HOW WOULD YOU RATE THIS GAME SO FAR?\n";
-    showReview();
-    while(cin >> reviewIndex){
-        if(reviewIndex < 0 || reviewIndex > 5){
-            cout << "INVALID INDEX! INPUT A VALID ONE\n";
-        }else{
-            break;
-        }
-    }
-    switch(reviewIndex){
-        case 1:
-            review = Review::TERRIBLE;
-            break;
-
-        case 2:
-            review = Review::BAD;
-            break;
-
-        case 3:
-            review = Review::OK;
-            break;
-
-        case 4:
-            review = Review::GOOD;
-            break;
-
-        case 5:
-            review = Review::AWESOME;
-            break;
-    }
-
-
-    cout << "WHAT'S THE AGE RESTRICTION FOR THIS GAME?\n";
-    showAgeRestriction();
-    while(cin >> ageRestrictionIndex){
-        if(ageRestrictionIndex < 0 || ageRestrictionIndex > 6){
-            cout << "INVALID INDEX! INPUT A VALID ONE\n";
-        }else{
-            break;
-        }
-    }
-    switch(ageRestrictionIndex){
-        case 1:
-            ageRestriction = AgeRestriction::FFA;
-            break;
-
-        case 2:
-            ageRestriction = AgeRestriction::A10;
-            break;
-
-        case 3:
-            ageRestriction = AgeRestriction::A12;
-            break;
-
-        case 4:
-            ageRestriction = AgeRestriction::A14;
-            break;
-
-        case 5:
-            ageRestriction = AgeRestriction::A16;
-            break;
-
-        case 6:
-            ageRestriction = AgeRestriction::A18;
-            break;
-    }
-
-    rbt.insert(downloads, name, genres, review, ageRestriction);
-
-    cout << "GAME ADDED TO YOUR LIBRARY WITH SUCCESS!\n";
-    
-}
-
 int main() {
 
     cout << "\033[35m"; // switches output color to magenta
@@ -746,6 +603,7 @@ int main() {
             case 1:
             auxGenre = 0;
             genres = {};
+            genresIndexes = {};
 
             cout << "WHAT'S THE NAME OF THE GAME?\n";
             getline(cin, cgName);
@@ -871,16 +729,6 @@ int main() {
         }
         showOptionsMenu();
     }
-    
-    // Insert some games
-    gameTree.insert(1000, "Game 1", {Genre::FPS, Genre::STRATEGY}, Review::GOOD, AgeRestriction::A12);
-    gameTree.insert(500, "Game 2", {Genre::SPORTS}, Review::OK, AgeRestriction::A10);
-    gameTree.insert(2000, "Game 3", {Genre::ADVENTURE, Genre::OPENWORLD}, Review::AWESOME, AgeRestriction::A16);
-
-    // Print all games using in-order DFS
-    cout << "All games: ";
-    gameTree.inOrderDFS();
-    cout << endl;
 
     return 0;
 }

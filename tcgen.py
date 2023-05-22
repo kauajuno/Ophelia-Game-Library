@@ -15,7 +15,7 @@ if not os.path.exists('testcases'):
     os.makedirs('testcases')
 
 for i in range(1, total_testcases + 1):
-    inputs = random.randint(1, 30)
+    inputs = random.randint(4, 10000)
     filename = f"testcases/input{i}.txt"  # File path with the current testcase number
 
     with open(filename, 'w') as file:
@@ -40,8 +40,12 @@ for i in range(1, total_testcases + 1):
 
             genres_string = ' '.join(str(num) for num in selectedGenres)
 
+            file.write("1\n")
             file.write(prefix + adjective + name + connector + finals + "\n")
             file.write(str(downloads) + "\n")
             file.write(genres_string + "\n")
             file.write(str(review) + "\n")
             file.write(str(agerestriction) + "\n")
+
+        file.write("3")
+
