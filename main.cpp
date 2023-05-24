@@ -5,7 +5,7 @@ typedef unsigned int ui;
 
 enum Color{
     RED,
-    BLACK
+    BLACK,
 };
 
 enum Genre{
@@ -194,8 +194,8 @@ class RBTree{
                     }
                 } 
             }
-        x->color = Color::BLACK;
-	}
+            x->color = Color::BLACK;
+	    }
 
         void deleteHelper(TreeNode* node, string gameName){
             TreeNode* aux = node;
@@ -234,6 +234,10 @@ class RBTree{
                     dNode->parent->lchild = nil;
                 else
                     dNode->parent->rchild = nil;
+                if(dNode->color == Color::BLACK && dNode->parent->color == Color::RED)
+                        dNode->parent->color = Color::BLACK;
+                free(dNode);
+                return;
             }else if(dNode->lchild == nil){
                 dNodeOnlyChild = dNode->rchild;
                 rbTransplant(dNode, dNode->rchild);
@@ -415,7 +419,7 @@ class RBTree{
                 root = newNode;
                 return;
             }
-            else if(newNode->downloads < prev->downloads)
+            else if(newNode->name < prev->name)
                 prev->lchild = newNode;
             else
                 prev->rchild = newNode;
