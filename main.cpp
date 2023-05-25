@@ -139,12 +139,17 @@ class RBTree{
             y->parent = x->parent;
         }
 
+        // deleteHelper (string name)
+        // transplant
+        // (z, z->right)
+        // fixDelete
+
         void fixDelete(TreeNode* x) {
             TreeNode* s;
             while (x != root && x->color == Color::BLACK) {
                 if (x == x->parent->lchild) {
                     s = x->parent->rchild;
-                    if (s->color == 1) {
+                    if (s->color == Color::RED) {
                         s->color = Color::BLACK;
                         x->parent->color = Color::RED;
                         leftRotate(x->parent);
@@ -222,6 +227,10 @@ class RBTree{
                 return;
             }
 
+            cout << "\033[35m";
+            cout << gameName << " WAS SUCCESSFULLY REMOVED FROM YOUR LIBRARY\n";
+            cout << "\033[0m";
+
             dNodeHelper = dNode;
             Color ogcolor = dNodeHelper->color;
             if(dNode->lchild == nil && dNode->rchild == nil){
@@ -245,6 +254,7 @@ class RBTree{
                 dNodeOnlyChild = dNode->lchild;
                 rbTransplant(dNode, dNode->lchild);
             }else{
+                // getting the successor
                 dNodeHelper = minimum(dNode->rchild);
                 ogcolor = dNodeHelper->color;
                 dNodeOnlyChild = dNodeHelper->rchild;
